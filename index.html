@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Quiz Website</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">MCQ Quiz Platform</div>
+            <div class="nav-links">
+                <a href="#" onclick="showHome()" class="nav-link active">Home</a>
+                <a href="#" onclick="showQuiz()" class="nav-link">Quiz</a>
+                <a href="#" onclick="showCaseStudy()" class="nav-link">Case Studies</a>
+            </div>
+        </nav>
+
+        <!-- Home Page -->
+        <div id="homePage" class="page active">
+            <div class="hero">
+                <h1>Welcome to MCQ Quiz Platform</h1>
+                <p>Test your knowledge with our comprehensive quiz system</p>
+                <button class="btn btn-primary" onclick="showQuiz()">Start Quiz</button>
+                <button class="btn btn-secondary" onclick="showCaseStudy()">View Case Studies</button>
+            </div>
+        </div>
+
+        <!-- Quiz Page -->
+        <div id="quizPage" class="page">
+            <div class="quiz-container">
+                <!-- Category Selection -->
+                <div id="categorySelection" class="category-section">
+                    <h2>Select a Category</h2>
+                    <div class="category-grid" id="categoryGrid"></div>
+                </div>
+
+                <!-- Quiz Questions -->
+                <div id="quizQuestions" class="quiz-section" style="display:none;">
+                    <div class="quiz-header">
+                        <span id="categoryTitle"></span>
+                        <span id="questionCounter"></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    
+                    <div id="questionContainer" class="question-container"></div>
+                    
+                    <div class="quiz-controls">
+                        <button class="btn btn-secondary" onclick="goBack()">Back to Categories</button>
+                        <button class="btn btn-primary" onclick="nextQuestion()">Next</button>
+                    </div>
+                </div>
+
+                <!-- Results Page -->
+                <div id="resultsPage" class="results-section" style="display:none;">
+                    <div class="results-card">
+                        <h2>Quiz Completed!</h2>
+                        <div class="score-display">
+                            <div class="score-circle">
+                                <span id="finalScore"></span>
+                                <span class="score-total">/ 100</span>
+                            </div>
+                        </div>
+                        <div id="resultsSummary"></div>
+                        <button class="btn btn-primary" onclick="retakeQuiz()">Retake Quiz</button>
+                        <button class="btn btn-secondary" onclick="showHome()">Go to Home</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Case Studies Page -->
+        <div id="caseStudyPage" class="page">
+            <div class="case-study-container">
+                <h2>Case Studies</h2>
+                <div id="caseStudiesGrid" class="case-studies-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
