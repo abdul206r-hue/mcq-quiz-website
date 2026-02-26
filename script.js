@@ -1,229 +1,169 @@
-// Global variables
 let currentCategory = null;
 let currentQuestionIndex = 0;
 let userAnswers = [];
 let score = 0;
+let questionsToShow = [];
 
-// Initialize the website
 document.addEventListener('DOMContentLoaded', function() {
+    initializeLocalStorage();
     loadCategoriesHome();
-    loadCaseStudies();
 });
 
-// Show/Hide Pages
+function initializeLocalStorage() {
+    if (!localStorage.getItem('quizStats')) {
+        localStorage.setItem('quizStats', JSON.stringify({
+            totalQuizzes: 0,
+            totalCorrect: 0,
+            totalAttempted: 0,
+            wrongAnswers: []
+        }));
+    }
+}
+
 function showPage(pageName) {
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     document.getElementById(pageName).classList.add('active');
 }
 
-function showHome() {
-    showPage('homePage');
-    updateNavLinks('home');
-}
+function showHome() { showPage('homePage'); updateNavLinks(0); }
+function showQuiz() { showPage('quizPage'); updateNavLinks(1); loadCategories(); }
+function showStats() { showPage('statsPage'); updateNavLinks(2); displayStatistics(); }
 
-function showQuiz() {
-    showPage('quizPage');
-    updateNavLinks('quiz');
-    loadCategories();
-}
-
-function showCaseStudy() {
-    showPage('caseStudyPage');
-    updateNavLinks('casestudy');
-    loadCaseStudiesDisplay();
-}
-
-function updateNavLinks(active) {
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
+function updateNavLinks(index) {
+    document.querySelectorAll('.nav-link').forEach((link, i) => {
+        link.classList.toggle('active', i === index);
     });
-    const links = document.querySelectorAll('.nav-link');
-    if (active === 'home') links[0].classList.add('active');
-    else if (active === 'quiz') links[1].classList.add('active');
-    else if (active === 'casestudy') links[2].classList.add('active');
 }
 
-// Load Categories
+function loadCategoriesHome() {}
+
 function loadCategories() {
-    const categoryGrid = document.getElementById('categoryGrid');
-    categoryGrid.innerHTML = '';
-    
-    quizData.categories.forEach(category => {
-        const categoryCard = document.createElement('div');
-        categoryCard.className = 'category-card';
-        categoryCard.innerHTML = `
-            <h3>${category.name}</h3>
-            <p>${category.questions.length} Questions</p>
-            <button onclick="startQuiz(${category.id})" class="btn btn-primary">Start</button>
-        `;
-        categoryGrid.appendChild(categoryCard);
+    const grid = document.getElementById('categoryGrid');
+    grid.innerHTML = '';
+    quizData.categories.forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'category-card';
+        card.innerHTML = `<h3>${cat.name}</h3><p>${cat.questions.length} Questions</p><button onclick="startQuiz(${cat.id})" class="btn btn-primary">Start</button>`;
+        grid.appendChild(card);
     });
 }
 
-function loadCategoriesHome() {
-    // Load categories for home page if needed
-    loadCategories();
-}
-
-// Start Quiz
 function startQuiz(categoryId) {
     currentCategory = quizData.categories.find(cat => cat.id === categoryId);
     currentQuestionIndex = 0;
     userAnswers = [];
     score = 0;
+    questionsToShow = [...currentCategory.questions];
     
     document.getElementById('categorySelection').style.display = 'none';
     document.getElementById('quizQuestions').style.display = 'block';
+    document.getElementById('resultsPage').style.display = 'none';
     document.getElementById('categoryTitle').textContent = currentCategory.name;
-    
     displayQuestion();
 }
 
-// Display Question
 function displayQuestion() {
-    const question = currentCategory.questions[currentQuestionIndex];
-    const totalQuestions = currentCategory.questions.length;
+    if (currentQuestionIndex >= questionsToShow.length) {
+        calculateScore();
+        showResults();
+        return;
+    }
+
+    const q = questionsToShow[currentQuestionIndex];
+    const total = questionsToShow.length;
+    document.getElementById('questionCounter').textContent = `Q${currentQuestionIndex + 1}/${total}`;
     
-    document.getElementById('questionCounter').textContent = `Question ${currentQuestionIndex + 1} of ${totalQuestions}`;
-    
-    // Update progress bar
-    const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+    const progress = ((currentQuestionIndex + 1) / total) * 100;
     document.getElementById('progressFill').style.width = progress + '%';
     
-    const questionContainer = document.getElementById('questionContainer');
-    questionContainer.innerHTML = `
-        <div class="question-card">
-            <h3>${question.question}</h3>
-            <div class="options-list">
-                ${question.options.map((option, index) => `
-                    <label class="option-label">
-                        <input type="radio" name="answer" value="${String.fromCharCode(65 + index)}" onchange="selectAnswer('${String.fromCharCode(65 + index)}')">
-                        <span>${String.fromCharCode(65 + index)}. ${option}</span>
-                    </label>
-                `).join('')}
-            </div>
-        </div>
-    `;
+    const container = document.getElementById('questionContainer');
+    container.innerHTML = `<div class="question-card"><h3>${q.question}</h3><div class="options-list">${q.options.map((opt, i) => `<label class="option-label"><input type="radio" name="answer" value="${String.fromCharCode(65+i)}" onchange="selectAnswer('${String.fromCharCode(65+i)}')"><span>${String.fromCharCode(65+i)}. ${opt}</span></label>`).join('')}</div></div>`;
 }
 
-// Select Answer
-function selectAnswer(answer) {
-    userAnswers[currentQuestionIndex] = answer;
+function selectAnswer(ans) { 
+    userAnswers[currentQuestionIndex] = ans; 
 }
 
-// Next Question
 function nextQuestion() {
     if (userAnswers[currentQuestionIndex] === undefined) {
         alert('Please select an answer!');
         return;
     }
-    
     currentQuestionIndex++;
-    
-    if (currentQuestionIndex < currentCategory.questions.length) {
-        displayQuestion();
-    } else {
-        calculateScore();
-        showResults();
-    }
+    displayQuestion();
 }
 
-// Go Back to Categories
 function goBack() {
     document.getElementById('quizQuestions').style.display = 'none';
     document.getElementById('categorySelection').style.display = 'block';
     currentQuestionIndex = 0;
     userAnswers = [];
+    loadCategories();
 }
 
-// Calculate Score
 function calculateScore() {
     score = 0;
-    currentCategory.questions.forEach((question, index) => {
-        if (userAnswers[index] === question.correctAnswer) {
+    let wrongAnswers = [];
+    questionsToShow.forEach((q, i) => {
+        if (userAnswers[i] === q.correctAnswer) {
             score++;
+        } else {
+            wrongAnswers.push(q);
         }
     });
+    
+    const stats = JSON.parse(localStorage.getItem('quizStats'));
+    stats.totalQuizzes++;
+    stats.totalCorrect += score;
+    stats.totalAttempted += questionsToShow.length;
+    wrongAnswers.forEach(q => {
+        if (!stats.wrongAnswers.find(item => item.id === q.id)) {
+            stats.wrongAnswers.push(q);
+        }
+    });
+    localStorage.setItem('quizStats', JSON.stringify(stats));
 }
 
-// Show Results
 function showResults() {
     document.getElementById('quizQuestions').style.display = 'none';
     document.getElementById('resultsPage').style.display = 'block';
     
-    const totalQuestions = currentCategory.questions.length;
-    const percentage = Math.round((score / totalQuestions) * 100);
+    const total = questionsToShow.length;
+    const pct = Math.round((score / total) * 100);
+    document.getElementById('finalScore').textContent = pct;
     
-    document.getElementById('finalScore').textContent = percentage;
-    
-    let summary = `<h3>Your Score: ${score} out of ${totalQuestions}</h3>`;
-    summary += '<div class="answer-review">';
-    
-    currentCategory.questions.forEach((question, index) => {
-        const userAnswer = userAnswers[index];
-        const isCorrect = userAnswer === question.correctAnswer;
-        const answerLetter = userAnswer || 'Not answered';
-        const correctLetter = question.correctAnswer;
-        
-        summary += `
-            <div class="question-review ${isCorrect ? 'correct' : 'incorrect'}">
-                <p><strong>Q${index + 1}: ${question.question}</strong></p>
-                <p>Your answer: <strong>${answerLetter}</strong> - ${isCorrect ? '✓ Correct' : '✗ Incorrect'}</p>
-                ${!isCorrect ? `<p>Correct answer: <strong>${correctLetter}</strong></p>` : ''}
-                <p class="explanation"><em>${question.explanation}</em></p>
-            </div>
-        `;
+    let summary = `<h3>Score: ${score}/${total}</h3><div class="answer-review">`;
+    questionsToShow.forEach((q, i) => {
+        const ans = userAnswers[i];
+        const correct = ans === q.correctAnswer;
+        const correctOpt = q.options[q.correctAnswer.charCodeAt(0) - 65];
+        summary += `<div class="question-review ${correct?'correct':'incorrect'}"><p><strong>Q${i+1}: ${q.question}</strong></p><p>Your: <strong>${ans||'?'}</strong> - ${correct?'✓':'✗'}</p>${!correct?`<p>Correct: <strong>${q.correctAnswer}. ${correctOpt}</strong></p>`:''}<p class="explanation"><em>${q.explanation}</em></p></div>`;
     });
-    
     summary += '</div>';
     document.getElementById('resultsSummary').innerHTML = summary;
 }
 
-// Retake Quiz
 function retakeQuiz() {
     document.getElementById('resultsPage').style.display = 'none';
     document.getElementById('categorySelection').style.display = 'block';
-    currentQuestionIndex = 0;
-    userAnswers = [];
-    score = 0;
+    loadCategories();
 }
 
-// Load Case Studies
-function loadCaseStudies() {
-    // Initialize case studies
-}
-
-function loadCaseStudiesDisplay() {
-    const caseStudiesGrid = document.getElementById('caseStudiesGrid');
-    caseStudiesGrid.innerHTML = '';
+function displayStatistics() {
+    const stats = JSON.parse(localStorage.getItem('quizStats'));
+    const grid = document.getElementById('statsGrid');
+    grid.innerHTML = `<div class="stat-card"><h3>Total Quizzes</h3><div class="stat-value">${stats.totalQuizzes}</div></div><div class="stat-card"><h3>Correct</h3><div class="stat-value">${stats.totalCorrect}</div></div><div class="stat-card"><h3>Accuracy</h3><div class="stat-value">${stats.totalAttempted>0?Math.round((stats.totalCorrect/stats.totalAttempted)*100):0}%</div></div>`;
     
-    quizData.caseStudies.forEach(caseStudy => {
-        const caseCard = document.createElement('div');
-        caseCard.className = 'case-study-card';
-        caseCard.innerHTML = `
-            <h3>${caseStudy.title}</h3>
-            <p>${caseStudy.description}</p>
-            <p class="date">${new Date(caseStudy.date).toLocaleDateString()}</p>
-            <button onclick="viewCaseStudy(${caseStudy.id})" class="btn btn-primary">Read More</button>
-        `;
-        caseStudiesGrid.appendChild(caseCard);
-    });
-}
-
-function viewCaseStudy(caseStudyId) {
-    const caseStudy = quizData.caseStudies.find(cs => cs.id === caseStudyId);
-    const caseContainer = document.querySelector('.case-study-container');
-    
-    caseContainer.innerHTML = `
-        <div class="case-study-detail">
-            <button onclick="loadCaseStudiesDisplay()" class="btn btn-secondary">Back</button>
-            <h2>${caseStudy.title}</h2>
-            <p class="date">${new Date(caseStudy.date).toLocaleDateString()}</p>
-            <div class="case-content">
-                <p>${caseStudy.content}</p>
-            </div>
-        </div>
-    `;
+    const list = document.getElementById('wrongAnswersList');
+    if (stats.wrongAnswers && stats.wrongAnswers.length > 0) {
+        list.innerHTML = '';
+        stats.wrongAnswers.slice(0, 10).forEach(q => {
+            const item = document.createElement('div');
+            item.className = 'wrong-answer-item';
+            item.innerHTML = `<strong>${q.question}</strong><p>${q.explanation}</p>`;
+            list.appendChild(item);
+        });
+    } else {
+        list.innerHTML = '<p>No wrong answers yet. Keep practicing!</p>';
+    }
 }
