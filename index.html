@@ -1,1 +1,169 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ACCA Audit Quiz</title><link rel="stylesheet" href="styles.css"></head><body><div class="container"><div class="header-bar"><h1 class="header-title">🎓 ACCA AUDIT</h1><p class="header-subtitle">MCQ Quiz Platform</p></div><nav class="navbar"><div class="nav-links"><a onclick="showHome()" class="nav-link active">Home</a><a onclick="showQuiz()" class="nav-link">Quiz</a><a onclick="showStats()" class="nav-link">Statistics</a></div></nav><div id="homePage" class="page active"><div class="hero"><h1>Welcome</h1><p>50 ACCA Audit Questions</p><button class="btn btn-primary btn-large" onclick="showQuiz()">Start</button></div></div><div id="quizPage" class="page"><div id="categorySelection" class="category-section"><h2>Select Category</h2><div class="category-grid" id="categoryGrid"></div></div><div id="quizQuestions" style="display:none;"><div class="quiz-header"><span id="categoryTitle"></span><span id="questionCounter"></span></div><div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div><div id="questionContainer"></div><div class="quiz-controls"><button class="btn btn-secondary" onclick="goBack()">Back</button><button class="btn btn-primary" onclick="nextQuestion()">Next</button></div></div><div id="resultsPage" style="display:none;"><div class="results-card"><h2>Quiz Complete</h2><div class="score-circle"><span id="finalScore"></span><span>/100</span></div><div id="resultsSummary"></div><button class="btn btn-primary" onclick="retakeQuiz()">Retake</button><button class="btn btn-secondary" onclick="showHome()">Home</button></div></div></div><div id="statsPage" class="page"><div class="stats-container"><h2>Statistics</h2><div class="stats-grid" id="statsGrid"></div><div id="wrongAnswersList"></div></div></div></div><script src="data.js"></script><script src="script.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACCA AA – Audit and Assurance | Exam Platform</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ===== HOME PAGE ===== -->
+  <div id="homePage" class="view active">
+    <div class="home-header">
+      <div class="home-logo">ACCA</div>
+      <h1 class="home-title">Audit and Assurance</h1>
+      <p class="home-code">Paper AA &nbsp;|&nbsp; Specimen Exam Practice</p>
+    </div>
+    <div class="home-body">
+      <div class="home-card">
+        <h2>Welcome to the AA Exam Platform</h2>
+        <p>This practice exam contains <strong>50 multiple-choice questions</strong> covering the full AA syllabus. Work through the questions at your own pace or under timed conditions.</p>
+        <ul class="home-features">
+          <li>✔ 50 ACCA-standard MCQ questions</li>
+          <li>✔ Flag questions for review</li>
+          <li>✔ Real-time progress tracking</li>
+          <li>✔ Detailed explanations on completion</li>
+        </ul>
+        <div class="home-actions">
+          <button class="btn btn-primary btn-large" onclick="beginExam()">Start Exam</button>
+          <button class="btn btn-outline btn-large" onclick="showStats()">View Statistics</button>
+        </div>
+      </div>
+    </div>
+    <div class="home-footer">ACCA Audit and Assurance &copy; Practice Platform</div>
+  </div>
+
+  <!-- ===== EXAM PAGE ===== -->
+  <div id="examPage" class="view">
+
+    <!-- Top info bar -->
+    <header class="exam-header">
+      <div class="exam-header-left">
+        <span class="acca-logo">ACCA</span>
+        <span class="exam-header-title">AA – Audit and Assurance</span>
+      </div>
+      <div class="exam-header-center">
+        <div class="progress-wrap">
+          <div class="progress-bar-track">
+            <div id="progressFill" class="progress-bar-fill"></div>
+          </div>
+          <span id="progressLabel" class="progress-label">0 / 50</span>
+        </div>
+      </div>
+      <div class="exam-header-right">
+        <div class="timer-box">
+          <span class="timer-icon">⏱</span>
+          <span id="timerDisplay" class="timer-text">02:00:00</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Section tab bar -->
+    <div class="section-bar">
+      <button id="sectionBtn" class="section-tab active">Section A – MCQ (50 Questions)</button>
+      <div class="section-bar-right">
+        <span id="flagCount" class="flag-counter">🚩 0 flagged</span>
+        <button class="btn-icon" onclick="showHelp()" title="Help">?</button>
+      </div>
+    </div>
+
+    <!-- Exam body: navigator + question -->
+    <div class="exam-body">
+
+      <!-- Left: question navigator -->
+      <aside class="question-nav">
+        <div class="nav-legend">
+          <span class="legend-item"><span class="dot dot-answered"></span>Answered</span>
+          <span class="legend-item"><span class="dot dot-flagged"></span>Flagged</span>
+          <span class="legend-item"><span class="dot dot-current"></span>Current</span>
+          <span class="legend-item"><span class="dot dot-unanswered"></span>Not answered</span>
+        </div>
+        <div id="questionNavGrid" class="nav-grid"></div>
+      </aside>
+
+      <!-- Right: question display -->
+      <main class="question-area">
+        <div class="question-meta">
+          <span id="questionLabel" class="q-label">Question 1 of 50</span>
+          <span class="q-marks">1 mark</span>
+          <button id="flagBtn" class="btn-flag" onclick="toggleFlag()" title="Flag for review">🚩 Flag</button>
+        </div>
+        <div id="questionContainer" class="question-container"></div>
+      </main>
+
+    </div>
+
+    <!-- Bottom toolbar -->
+    <footer class="exam-toolbar">
+      <button class="btn btn-outline" onclick="confirmExit()">← Exit Exam</button>
+      <div class="toolbar-center">
+        <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">◀ Previous</button>
+        <button class="btn btn-secondary" id="nextBtn" onclick="nextQuestion()">Next ▶</button>
+      </div>
+      <button class="btn btn-primary" onclick="confirmSubmit()">Submit Exam</button>
+    </footer>
+
+  </div>
+
+  <!-- ===== RESULTS PAGE ===== -->
+  <div id="resultsPage" class="view">
+    <div class="results-header">
+      <div class="acca-logo">ACCA</div>
+      <h1>Exam Results</h1>
+      <p>AA – Audit and Assurance</p>
+    </div>
+    <div class="results-body">
+      <div class="score-panel">
+        <div class="score-ring" id="scoreRing">
+          <svg viewBox="0 0 120 120">
+            <circle class="ring-track" cx="60" cy="60" r="50"/>
+            <circle id="ringFill" class="ring-fill" cx="60" cy="60" r="50"/>
+          </svg>
+          <div class="ring-text">
+            <span id="scorePercent">0%</span>
+            <small id="scoreLabel">0 / 50</small>
+          </div>
+        </div>
+        <div class="score-stats" id="scoreStats"></div>
+      </div>
+      <div id="resultsSummary" class="results-detail"></div>
+    </div>
+    <div class="results-footer">
+      <button class="btn btn-primary btn-large" onclick="retakeQuiz()">Retake Exam</button>
+      <button class="btn btn-outline btn-large" onclick="showStats()">View Statistics</button>
+      <button class="btn btn-outline btn-large" onclick="showHome()">Home</button>
+    </div>
+  </div>
+
+  <!-- ===== STATISTICS PAGE ===== -->
+  <div id="statsPage" class="view">
+    <div class="stats-header">
+      <button class="back-btn" onclick="showHome()">← Back</button>
+      <h1>Performance Statistics</h1>
+    </div>
+    <div class="stats-body">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div id="wrongAnswersList" class="wrong-answers-section"></div>
+    </div>
+  </div>
+
+  <!-- ===== HELP MODAL ===== -->
+  <div id="helpModal" class="modal-overlay" style="display:none;" onclick="closeHelp(event)">
+    <div class="modal-box">
+      <h2>Exam Help</h2>
+      <ul>
+        <li><strong>Navigate</strong> questions using Previous / Next or the grid panel.</li>
+        <li><strong>Flag</strong> a question using the 🚩 button to review it later.</li>
+        <li><strong>Progress bar</strong> shows how many questions you have answered.</li>
+        <li><strong>Timer</strong> counts down from 2 hours – manage your time carefully.</li>
+        <li>Click <strong>Submit Exam</strong> when you are ready to see your results.</li>
+      </ul>
+      <button class="btn btn-primary" onclick="closeHelp()">Close</button>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
